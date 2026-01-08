@@ -5,11 +5,51 @@ from bs4 import BeautifulSoup
 import groq
 import os
 from typing import List, Dict, Optional
-import streamlit as st
+from contextlib import contextmanager
 import urllib.parse
 import time
 import random
 import json
+
+# Safe import of streamlit - only used if running in Streamlit context
+try:
+    import streamlit as st
+    _STREAMLIT_AVAILABLE = True
+except ImportError:
+    _STREAMLIT_AVAILABLE = False
+
+@contextmanager
+def safe_spinner(message: str):
+    """Safe spinner context manager that works with or without Streamlit."""
+    if _STREAMLIT_AVAILABLE:
+        try:
+            with st.spinner(message):
+                yield
+        except:
+            yield
+    else:
+        print(f"[INFO] {message}")
+        yield
+
+def safe_warning(message: str):
+    """Safe warning that works with or without Streamlit."""
+    if _STREAMLIT_AVAILABLE:
+        try:
+            st.warning(message)
+        except:
+            print(f"[WARNING] {message}")
+    else:
+        print(f"[WARNING] {message}")
+
+def safe_error(message: str):
+    """Safe error that works with or without Streamlit."""
+    if _STREAMLIT_AVAILABLE:
+        try:
+            st.error(message)
+        except:
+            print(f"[ERROR] {message}")
+    else:
+        print(f"[ERROR] {message}")
 
 class JobSearcher:
     def __init__(self, groq_api_key: str):
@@ -58,11 +98,7 @@ class JobSearcher:
             return []
             
         except Exception as e:
-            # Use print for non-Streamlit contexts
-            try:
-                st.error(f"Error extracting skills: {str(e)}")
-            except:
-                print(f"Error extracting skills: {str(e)}")
+            safe_error(f"Error extracting skills: {str(e)}")
             return []
     
     def search_jobs_by_resume(self, resume_text: str, location: str = "United States",
@@ -72,10 +108,7 @@ class JobSearcher:
         skills = self.extract_skills_from_resume(resume_text)
         
         if not skills:
-            try:
-                st.warning("Could not extract skills from resume. Please try manual search.")
-            except:
-                print("Could not extract skills from resume. Please try manual search.")
+            safe_warning("Could not extract skills from resume. Please try manual search.")
             return pd.DataFrame()
         
         # Create search term from top skills
@@ -87,7 +120,7 @@ class JobSearcher:
                    results_wanted: int = 20, job_type: Optional[str] = None) -> pd.DataFrame:
         """Search for jobs using real APIs (JSearch and Adzuna)."""
         try:
-            with st.spinner("Searching for real job opportunities..."):
+            with safe_spinner("Searching for real job opportunities..."):
                 all_jobs = []
 
                 # Try JSearch API first (via RapidAPI)
@@ -101,21 +134,14 @@ class JobSearcher:
                     adzuna_jobs = self._search_adzuna_api(search_term, location, min(remaining_results, 10), job_type)
                     all_jobs.extend(adzuna_jobs)
 
-                # If no API keys available, fall back to sample data with warning
                 if not all_jobs:
                     if not self.rapidapi_key and not (self.adzuna_app_id and self.adzuna_app_key):
-                        try:
-                            st.warning("⚠️ No API keys configured. Showing sample data. Please add RAPIDAPI_KEY or ADZUNA_APP_ID/ADZUNA_APP_KEY to .env file for real job data.")
-                        except:
-                            print("⚠️ No API keys configured. Showing sample data.")
+                        safe_warning("⚠️ No API keys configured. Showing sample data. Please add RAPIDAPI_KEY or ADZUNA_APP_ID/ADZUNA_APP_KEY to .env file for real job data.")
                     sample_jobs = self._generate_sample_jobs(search_term, location, results_wanted, job_type)
                     all_jobs.extend(sample_jobs)
 
                 if not all_jobs:
-                    try:
-                        st.warning("No jobs found for the given criteria.")
-                    except:
-                        print("No jobs found for the given criteria.")
+                    safe_warning("No jobs found for the given criteria.")
                     return pd.DataFrame()
 
                 # Convert to DataFrame and clean
@@ -125,10 +151,7 @@ class JobSearcher:
                 return jobs_df
 
         except Exception as e:
-            try:
-                st.error(f"Error searching for jobs: {str(e)}")
-            except:
-                print(f"Error searching for jobs: {str(e)}")
+            safe_error(f"Error searching for jobs: {str(e)}")
             return pd.DataFrame()
 
     def _search_jsearch_api(self, search_term: str, location: str, results_wanted: int, job_type: Optional[str]) -> List[Dict]:
@@ -139,8 +162,9 @@ class JobSearcher:
             querystring = {
                 "query": f"{search_term} {location}",
                 "page": "1",
+                "country": f"{location}",
                 "num_pages": "1",
-                "date_posted": "week"
+                "date_posted": "all"
             }
 
             # Add job type filter if specified
@@ -160,6 +184,7 @@ class JobSearcher:
             }
 
             response = requests.get(url, headers=headers, params=querystring, timeout=10)
+
 
             if response.status_code == 200:
                 data = response.json()
@@ -181,17 +206,11 @@ class JobSearcher:
 
                 return jobs
             else:
-                try:
-                    st.warning(f"JSearch API returned status code: {response.status_code}")
-                except:
-                    print(f"JSearch API returned status code: {response.status_code}")
+                safe_warning(f"JSearch API returned status code: {response.status_code}")
                 return []
 
         except Exception as e:
-            try:
-                st.warning(f"JSearch API error: {str(e)}")
-            except:
-                print(f"JSearch API error: {str(e)}")
+            safe_warning(f"JSearch API error: {str(e)}")
             return []
 
     def _search_adzuna_api(self, search_term: str, location: str, results_wanted: int, job_type: Optional[str]) -> List[Dict]:
@@ -250,17 +269,11 @@ class JobSearcher:
 
                 return jobs
             else:
-                try:
-                    st.warning(f"Adzuna API returned status code: {response.status_code}")
-                except:
-                    print(f"Adzuna API returned status code: {response.status_code}")
+                safe_warning(f"Adzuna API returned status code: {response.status_code}")
                 return []
 
         except Exception as e:
-            try:
-                st.warning(f"Adzuna API error: {str(e)}")
-            except:
-                print(f"Adzuna API error: {str(e)}")
+            safe_warning(f"Adzuna API error: {str(e)}")
             return []
 
     def _format_salary_jsearch(self, job: Dict) -> str:
@@ -406,7 +419,7 @@ class JobSearcher:
             return jobs_df.reset_index(drop=True)
             
         except Exception as e:
-            st.error(f"Error cleaning job data: {str(e)}")
+            safe_error(f"Error cleaning job data: {str(e)}")
             return jobs_df
     
     def _format_salary(self, row) -> str:
@@ -473,8 +486,485 @@ class JobSearcher:
             return []
             
         except Exception as e:
-            try:
-                st.error(f"Error generating recommendations: {str(e)}")
-            except:
-                print(f"Error generating recommendations: {str(e)}")
+            safe_error(f"Error generating recommendations: {str(e)}")
             return []
+
+    def get_career_path_analysis(self, resume_text: str, target_role: Optional[str] = None) -> Dict:
+        """Analyze potential career paths based on resume."""
+        prompt = f"""
+        Based on the following resume, analyze potential career paths.
+        {f"The user is targeting: {target_role}" if target_role else ""}
+        
+        Resume content:
+        {resume_text}
+        
+        Provide a JSON response with the following structure (no markdown, just pure JSON):
+        {{
+            "current_level": "Entry/Mid/Senior/Lead/Executive level assessment",
+            "career_paths": [
+                {{
+                    "path_name": "Career Path Name",
+                    "description": "Brief description",
+                    "next_role": "Immediate next role",
+                    "timeline": "Estimated timeline to reach",
+                    "requirements": ["Key requirement 1", "Key requirement 2"]
+                }}
+            ],
+            "strengths_for_growth": ["Strength 1", "Strength 2", "Strength 3"],
+            "growth_areas": ["Area 1", "Area 2", "Area 3"]
+        }}
+        
+        Provide 3 distinct career paths. Return ONLY valid JSON, no explanation text.
+        """
+        
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are a career advisor. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=800
+            )
+            
+            result = response.choices[0].message.content.strip()
+            # Clean up potential markdown formatting
+            if result.startswith("```"):
+                result = result.split("```")[1]
+                if result.startswith("json"):
+                    result = result[4:]
+            result = result.strip()
+            
+            return json.loads(result)
+            
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_skill_gap_analysis(self, resume_text: str, target_role: Optional[str] = None) -> Dict:
+        """Analyze skill gaps for target role."""
+        role_context = target_role if target_role else "a senior position in their field"
+        
+        prompt = f"""
+        Analyze the skill gaps between the resume and requirements for {role_context}.
+        
+        Resume content:
+        {resume_text}
+        
+        Provide a JSON response with the following structure (no markdown, just pure JSON):
+        {{
+            "current_skills": {{
+                "technical": ["skill1", "skill2"],
+                "soft": ["skill1", "skill2"],
+                "domain": ["skill1", "skill2"]
+            }},
+            "required_skills": {{
+                "technical": ["skill1", "skill2"],
+                "soft": ["skill1", "skill2"],
+                "domain": ["skill1", "skill2"]
+            }},
+            "skill_gaps": [
+                {{
+                    "skill": "Skill name",
+                    "priority": "High/Medium/Low",
+                    "importance": "Why this skill matters",
+                    "how_to_acquire": "How to learn this skill"
+                }}
+            ],
+            "match_percentage": 75
+        }}
+        
+        Identify top 5 skill gaps. Return ONLY valid JSON, no explanation text.
+        """
+        
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are a skills analyst. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=800
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result.startswith("```"):
+                result = result.split("```")[1]
+                if result.startswith("json"):
+                    result = result[4:]
+            result = result.strip()
+            
+            return json.loads(result)
+            
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_salary_insights(self, resume_text: str, target_role: Optional[str] = None, location: str = "United States") -> Dict:
+        """Get salary insights based on resume and target role."""
+        role_context = target_role if target_role else "positions matching this resume"
+        
+        prompt = f"""
+        Provide salary insights for {role_context} in {location} based on this resume.
+        
+        Resume content:
+        {resume_text}
+        
+        Provide a JSON response with the following structure (no markdown, just pure JSON):
+        {{
+            "estimated_current_value": {{
+                "low": 80000,
+                "mid": 95000,
+                "high": 115000,
+                "currency": "USD"
+            }},
+            "market_rate": {{
+                "entry_level": {{"low": 60000, "high": 80000}},
+                "mid_level": {{"low": 80000, "high": 110000}},
+                "senior_level": {{"low": 110000, "high": 150000}},
+                "lead_level": {{"low": 140000, "high": 180000}}
+            }},
+            "factors_affecting_salary": [
+                {{"factor": "Factor name", "impact": "Positive/Negative", "details": "Explanation"}}
+            ],
+            "negotiation_tips": ["Tip 1", "Tip 2", "Tip 3"],
+            "additional_compensation": ["Bonus types", "Stock options", "Benefits to negotiate"]
+        }}
+        
+        Return ONLY valid JSON, no explanation text.
+        """
+        
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are a compensation analyst. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=800
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result.startswith("```"):
+                result = result.split("```")[1]
+                if result.startswith("json"):
+                    result = result[4:]
+            result = result.strip()
+            
+            return json.loads(result)
+            
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_interview_preparation(self, resume_text: str, target_role: Optional[str] = None) -> Dict:
+        """Get interview preparation tips based on resume."""
+        role_context = target_role if target_role else "relevant positions"
+        
+        prompt = f"""
+        Provide interview preparation guidance for {role_context} based on this resume.
+        
+        Resume content:
+        {resume_text}
+        
+        Provide a JSON response with the following structure (no markdown, just pure JSON):
+        {{
+            "likely_questions": [
+                {{
+                    "question": "Interview question",
+                    "category": "Behavioral/Technical/Situational",
+                    "suggested_approach": "How to answer",
+                    "resume_points_to_highlight": ["Point from resume to mention"]
+                }}
+            ],
+            "stories_to_prepare": [
+                {{
+                    "situation": "STAR situation based on resume",
+                    "applicable_questions": ["Questions this story answers"]
+                }}
+            ],
+            "technical_topics_to_review": ["Topic 1", "Topic 2", "Topic 3"],
+            "questions_to_ask_interviewer": ["Question 1", "Question 2", "Question 3"],
+            "red_flags_to_address": [
+                {{
+                    "concern": "Potential concern from resume",
+                    "how_to_address": "How to proactively address this"
+                }}
+            ]
+        }}
+        
+        Provide 5 likely questions and 3 STAR stories. Return ONLY valid JSON, no explanation text.
+        """
+        
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are an interview coach. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=1000
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result.startswith("```"):
+                result = result.split("```")[1]
+                if result.startswith("json"):
+                    result = result[4:]
+            result = result.strip()
+            
+            return json.loads(result)
+            
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_learning_recommendations(self, resume_text: str, target_role: Optional[str] = None) -> Dict:
+        """Get personalized learning recommendations."""
+        role_context = target_role if target_role else "career advancement"
+        
+        prompt = f"""
+        Provide learning recommendations to help achieve {role_context} based on this resume.
+        
+        Resume content:
+        {resume_text}
+        
+        Provide a JSON response with the following structure (no markdown, just pure JSON):
+        {{
+            "courses": [
+                {{
+                    "title": "Course name",
+                    "platform": "Coursera/Udemy/LinkedIn Learning/etc",
+                    "skill_covered": "What skill this develops",
+                    "priority": "High/Medium/Low",
+                    "estimated_duration": "X hours/weeks"
+                }}
+            ],
+            "certifications": [
+                {{
+                    "name": "Certification name",
+                    "provider": "Certification provider",
+                    "value": "Why this certification matters",
+                    "difficulty": "Beginner/Intermediate/Advanced",
+                    "estimated_prep_time": "X months"
+                }}
+            ],
+            "books": [
+                {{
+                    "title": "Book title",
+                    "author": "Author name",
+                    "why_recommended": "Reason for recommendation"
+                }}
+            ],
+            "projects_to_build": [
+                {{
+                    "project": "Project description",
+                    "skills_demonstrated": ["Skill 1", "Skill 2"],
+                    "portfolio_value": "How this helps your portfolio"
+                }}
+            ],
+            "communities_to_join": ["Community 1", "Community 2"]
+        }}
+        
+        Provide 4 courses, 3 certifications, 3 books, and 3 projects. Return ONLY valid JSON, no explanation text.
+        """
+        
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are a learning advisor. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=1000
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result.startswith("```"):
+                result = result.split("```")[1]
+                if result.startswith("json"):
+                    result = result[4:]
+            result = result.strip()
+            
+            return json.loads(result)
+            
+        except Exception as e:
+            return {"error": str(e)}
+
+    def match_resume_to_job(self, resume_text: str, job_description: str) -> Dict:
+        """Match resume against a job description and provide detailed analysis."""
+        prompt = f"""
+        Analyze how well this resume matches the job description. Provide a detailed compatibility analysis.
+        
+        RESUME:
+        {resume_text}
+        
+        JOB DESCRIPTION:
+        {job_description}
+        
+        Provide a JSON response with the following structure (no markdown, just pure JSON):
+        {{
+            "match_score": 75,
+            "match_level": "Good Match/Strong Match/Excellent Match/Weak Match/Poor Match",
+            "summary": "Brief 2-3 sentence summary of the match",
+            "matching_keywords": [
+                {{
+                    "keyword": "keyword from job description",
+                    "found_in_resume": true,
+                    "context": "Where/how it appears in resume"
+                }}
+            ],
+            "missing_keywords": [
+                {{
+                    "keyword": "Missing keyword",
+                    "importance": "Critical/Important/Nice to have",
+                    "suggestion": "How to add or address this"
+                }}
+            ],
+            "strengths": [
+                {{
+                    "area": "Area of strength",
+                    "details": "Why this is a strong match"
+                }}
+            ],
+            "weaknesses": [
+                {{
+                    "area": "Area of weakness",
+                    "details": "Why this is a gap",
+                    "how_to_improve": "Specific improvement suggestion"
+                }}
+            ],
+            "experience_match": {{
+                "required_years": "X years",
+                "candidate_years": "Y years",
+                "assessment": "Meets/Exceeds/Below requirements"
+            }},
+            "education_match": {{
+                "required": "Required education",
+                "candidate_has": "Candidate's education",
+                "assessment": "Meets/Exceeds/Below requirements"
+            }},
+            "skills_breakdown": {{
+                "technical_skills": {{
+                    "matched": ["skill1", "skill2"],
+                    "missing": ["skill3", "skill4"],
+                    "match_percentage": 70
+                }},
+                "soft_skills": {{
+                    "matched": ["skill1", "skill2"],
+                    "missing": ["skill3"],
+                    "match_percentage": 80
+                }}
+            }},
+            "ats_optimization_tips": [
+                "Tip 1 for better ATS compatibility",
+                "Tip 2 for better ATS compatibility",
+                "Tip 3 for better ATS compatibility"
+            ],
+            "resume_improvements": [
+                {{
+                    "section": "Section to improve",
+                    "current": "Current state",
+                    "suggested": "Suggested improvement",
+                    "priority": "High/Medium/Low"
+                }}
+            ],
+            "cover_letter_points": [
+                "Key point to mention in cover letter",
+                "Another key point to address"
+            ]
+        }}
+        
+        Be thorough in identifying ALL keywords from the job description. Return ONLY valid JSON, no explanation text.
+        """
+        
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are an expert ATS (Applicant Tracking System) analyst and resume optimization specialist. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.4,
+                max_tokens=2000
+            )
+            
+            result = response.choices[0].message.content.strip()
+            # Clean up potential markdown formatting
+            if result.startswith("```"):
+                result = result.split("```")[1]
+                if result.startswith("json"):
+                    result = result[4:]
+            result = result.strip()
+            
+            return json.loads(result)
+            
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_industry_insights(self, resume_text: str, target_role: Optional[str] = None) -> Dict:
+        """Get industry insights and trends based on resume analysis."""
+        prompt = f"""
+        Based on this resume, provide industry insights and trends.
+        {f"The user is targeting: {target_role}" if target_role else ""}
+        
+        Resume content:
+        {resume_text}
+        
+        Provide a JSON response with the following structure (no markdown, just pure JSON):
+        {{
+            "relevant_industries": ["Industry 1", "Industry 2", "Industry 3"],
+            "industry_trends": [
+                {{
+                    "trend": "Trend name",
+                    "impact": "How this affects job seekers",
+                    "opportunity": "How to leverage this trend"
+                }}
+            ],
+            "emerging_roles": [
+                {{
+                    "role": "Role title",
+                    "description": "What this role does",
+                    "fit_score": "High/Medium/Low based on resume"
+                }}
+            ],
+            "companies_to_target": [
+                {{
+                    "company_type": "Type of company",
+                    "examples": ["Company 1", "Company 2"],
+                    "why_good_fit": "Reason"
+                }}
+            ],
+            "market_outlook": {{
+                "demand": "High/Medium/Low",
+                "competition": "High/Medium/Low",
+                "summary": "Brief market outlook summary"
+            }}
+        }}
+        
+        Return ONLY valid JSON, no explanation text.
+        """
+        
+        try:
+            response = self.groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are an industry analyst. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=800
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result.startswith("```"):
+                result = result.split("```")[1]
+                if result.startswith("json"):
+                    result = result[4:]
+            result = result.strip()
+            
+            return json.loads(result)
+            
+        except Exception as e:
+            return {"error": str(e)}

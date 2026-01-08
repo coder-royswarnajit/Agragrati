@@ -1,22 +1,49 @@
 version: '3.8'
 
 services:
-  resume-critiquer:
-    build: .
-    container_name: resume-critiquer-app
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agragrati-backend
     ports:
-      - "8501:8501"
+      - "8000:8000"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - RAPIDAPI_KEY=${RAPIDAPI_KEY}
+      - ADZUNA_APP_ID=${ADZUNA_APP_ID}
+      - ADZUNA_APP_KEY=${ADZUNA_APP_KEY}
     env_file:
       - .env
     volumes:
-      # Optional: Mount a volume for persistent data
-      - ./uploads:/app/uploads
+      - ./job_search.py:/app/job_search.py:ro
+      - ./backend/main.py:/app/main.py:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 10s
+    networks:
+      - agragrati-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:8000
+    container_name: agragrati-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - agragrati-network
+
+networks:
+  agragrati-network:
+    driver: bridge
