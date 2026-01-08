@@ -1,317 +1,433 @@
-# Agragrati - AI Resume & Job Search 🎯
+<p align="center">
+ <img src="frontend/public/icons/icon-192x192.png" alt="Agragrati Logo" width="120" height="120" />
+</p>
 
-An AI-powered resume analysis and job search platform built with Streamlit and Groq AI that provides comprehensive resume feedback and helps you find real job opportunities from multiple job boards and APIs.
+<h1 align="center"> Agragrati</h1>
 
-## 📞 Support
+<p align="center">
+ <strong>AI-Powered Resume Analysis & Job Search Platform</strong>
+</p>
 
-If you encounter issues:
-1. Check the troubleshooting section above
-2. Ensure all prerequisites are met
-3. Verify your API key is valid and active
-4. Try restarting the application
+<p align="center">
+ <a href="#features">Features</a> •
+ <a href="#demo">Demo</a> •
+ <a href="#quick-start">Quick Start</a> •
+ <a href="#deployment">Deployment</a> •
+ <a href="#api-keys">API Keys</a>
+</p>
 
----
-
-## 🌟 Features Overview
-
-### What Makes This Tool Special:
-
-- **🎯 Targeted Analysis**: Provides job-specific recommendations
-- **📊 Structured Output**: Organized feedback in 6 clear sections
-- **🔍 Smart Job Search**: AI-powered job matching based on your resume
-- **💼 Multi-Platform Search**: Search across LinkedIn, Indeed, ZipRecruiter, and more
-- **⚡ Fast Processing**: Quick AI-powered analysis and job search
-- **🔒 Privacy Focused**: Your resume data is processed securely
-- **💰 Cost Effective**: Uses free Groq API with generous limits
-- **🚀 Easy Deployment**: Multiple setup options for all skill levels
-
-### Sample Analysis Output:
-
-The tool provides feedback in these structured sections:
-1. **Overall Impression** - Quick quality assessment
-2. **Strengths** - What's working well
-3. **Areas for Improvement** - Specific issues identified
-4. **Recommendations** - Concrete improvement suggestions
-5. **Action Items** - Prioritized tasks (High/Medium/Low)
-6. **Final Score** - Numerical rating (1-10) with justification
-
-Perfect for job seekers, career counselors, and HR professionals! 🎉
+ <img src="https://img.shields.io/badge/React-18.3-blue?logo=react" alt="React" />
+ <img src="https://img.shields.io/badge/FastAPI-0.104-green?logo=fastapi" alt="FastAPI" />
+ <img src="https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript" alt="TypeScript" />
+ <img src="https://img.shields.io/badge/Tailwind-3.4-cyan?logo=tailwindcss" alt="Tailwind" />
+ <img src="https://img.shields.io/badge/Groq-Llama%203.3-orange" alt="Groq AI" />
+ <img src="https://img.shields.io/badge/Framer%20Motion-11-purple?logo=framer" alt="Framer Motion" />
+ <br/>
+ <img src="https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white" alt="Python" />
+ <img src="https://img.shields.io/badge/Vite-5.0-646CFF?logo=vite&logoColor=white" alt="Vite" />
+ <img src="https://img.shields.io/badge/Supabase-Database-3ECF8E?logo=supabase&logoColor=white" alt="Supabase" />
+ <img src="https://img.shields.io/badge/Zustand-State-orange" alt="Zustand" />
+ <img src="https://img.shields.io/badge/shadcn%2Fui-Components-000000" alt="shadcn/ui" />
+ <img src="https://img.shields.io/badge/Vercel-Deployment-000000?logo=vercel&logoColor=white" alt="Vercel" />
+ <img src="https://img.shields.io/badge/Docker-Container-2496ED?logo=docker&logoColor=white" alt="Docker" />
+</p>
 
 ---
 
-## ✨ New Features
+## Features
 
-### 🔍 Real Job Search Integration
-- **Smart Resume-Based Search**: Automatically extracts skills from your resume and finds matching real jobs
-- **Manual Job Search**: Search for specific job titles, keywords, or companies
-- **Real API Integration**: Uses JSearch API (RapidAPI) and Adzuna API for live job data
-- **Multi-Platform Coverage**: Searches across LinkedIn, Indeed, ZipRecruiter, Google Jobs, and more
-- **Advanced Filtering**: Filter results by company, job type, location, and source
-- **Export Results**: Download job search results as CSV for offline review
-- **Fallback Mode**: Shows sample data if API keys are not configured
+### Resume Analysis
+Upload your resume (PDF/TXT) and get comprehensive AI-powered feedback including:
+- ATS compatibility scoring
+- Skills extraction and evaluation
+- Actionable improvement suggestions
+- Target role identification
 
-### 💡 Career Insights
-- **Skill Extraction**: AI identifies key skills from your resume
-- **Job Recommendations**: Personalized suggestions for job titles and companies to target
-- **Career Guidance**: Strategic advice for improving your job search
+### Smart Job Search
+- **AI-Powered Search**: Automatically extracts skills from your resume to find matching jobs
+- **Manual Search**: Traditional keyword-based job search
+- Real job listings from JSearch & Adzuna APIs
+- Filter by company, source, job type
+- Export results to CSV
+- Bookmark jobs for later
+
+### Career Insights (6 AI Tools)
+| Tool | Description |
+|------|-------------|
+| **Career Paths** | Discover potential career trajectories based on your experience |
+| **Skill Gaps** | Identify skills to develop for your target role |
+| **Salary Insights** | Understand your market value with data-backed estimates |
+| **Interview Prep** | Get personalized interview preparation strategies |
+| **Learning Resources** | Curated courses, certifications, and books |
+| **Industry Trends** | Market outlook and emerging opportunities |
+
+### Job Match Score
+- Compare your resume against specific job descriptions
+- Detailed keyword matching analysis
+- Skills breakdown (technical & soft skills)
+- ATS optimization tips
+- Cover letter talking points
+
+### Cover Letter Generator
+- AI-generated personalized cover letters
+- Multiple tone options (professional, enthusiastic, formal)
+- Uses your uploaded resume for context
+- Copy to clipboard or download as text
+
+### Interview Practice
+- AI-generated interview questions tailored to your background
+- Practice with real-time response evaluation
+- Scoring and improvement tips
+- Multiple question categories
+
+### Application Tracker
+Track all your job applications with:
+- Status management (Saved → Applied → Interviewing → Offered)
+- Timeline and notes
+- Supabase database integration
+- Search and filter capabilities
+
+### Resume Builder
+- Create professional resumes from scratch
+- AI-enhanced section writing
+- Drag-and-drop section ordering
+- Download completed resume
+
+### Modern UI/UX
+- **Framer Motion animations** throughout
+- Dark/Light/System theme support
+- Responsive mobile-first design
+- Keyboard shortcuts (press `?` for help)
+- PWA support - install as desktop/mobile app
 
 ---
 
-## 📄 License
 
-This project is open source and available under the MIT License.
 
-## 🚀 Features
+## Project Structure
 
-- **📁 Multi-Format Support**: Upload resumes in PDF or TXT format
-- **🤖 AI-Powered Analysis**: Uses advanced Groq Llama models for intelligent feedback
-- **📊 Structured Feedback**: Get organized analysis with scores and prioritized action items
-- **🎯 Job-Specific Advice**: Tailored recommendations based on target job role
-- **🔍 ATS Compatibility**: Checks for Applicant Tracking System optimization
-- **⚡ Real-time Processing**: Fast analysis with detailed improvement suggestions
-- **💼 Real Job Search**: Find live job opportunities from real APIs based on your resume or manual search
-- **📈 Career Insights**: Get personalized career recommendations and skill analysis
-- **🔗 API Integration**: Connects to JSearch API and Adzuna API for real-time job data
-
-## 📋 Prerequisites
-
-Before you can run this application, you need:
-
-1. **Groq API Key** (Required)
-   - Sign up at [console.groq.com](https://console.groq.com/keys)
-   - Generate a free API key
-   - Note: Free tier includes generous usage limits
-
-2. **Choose Your Setup Method**:
-   - **Option A**: Docker (Recommended - No Python setup needed)
-   - **Option B**: Local Python Environment
-
----
-
-## 🐳 Method A: Docker Deployment (Recommended)
-
-### What You Need:
-- Docker Desktop installed ([Download here](https://www.docker.com/products/docker-desktop/))
-- Your Groq API key
-
-### Step-by-Step Setup:
-
-1. **Download/Clone this project** to your computer
-
-2. **Create the API key file**:
-   - Open the `.env` file in the project folder
-   - Replace `your_groq_api_key_here` with your actual API key:
-   ```env
-   GROQ_API_KEY=gsk_your_actual_api_key_here
-   ```
-
-3. **Open Terminal/Command Prompt** in the project folder
-
-4. **Run the application**:
-   ```bash
-   docker-compose up --build
-   ```
-   
-   *This will download dependencies, build the app, and start it automatically*
-
-5. **Access the app**: Open your browser and go to http://localhost:8501
-
-6. **To stop the app**: Press `Ctrl+C` in the terminal
-
-6. **To stop the app**: Press `Ctrl+C` in the terminal
-
-### Alternative Docker Commands (Advanced Users):
-
-**Build the image manually**:
-```bash
-docker build -t resume-critiquer .
+```
+Agragrati/
+├── frontend/         # React frontend
+│  ├── src/
+│  │  ├── pages/      # 10 page components
+│  │  ├── components/   # UI components + layout
+│  │  ├── hooks/      # Custom hooks (theme, PWA, shortcuts)
+│  │  ├── lib/       # API, Supabase, utilities, animations
+│  │  └── store/      # Zustand state management
+│  ├── public/       # PWA assets (manifest, icons, sw.js)
+│  ├── vercel.json     # Vercel deployment config
+│  └── package.json
+│
+├── backend/         # FastAPI backend
+│  ├── main.py       # API server (16+ endpoints)
+│  ├── requirements.txt   # Python dependencies
+│  ├── vercel.json     # Vercel serverless config
+│  └── Dockerfile      # Docker deployment
+│
+├── job_search.py      # Core AI & job search logic
+├── supabase_setup.sql    # Database schema
+├── docker-compose.yml    # Docker multi-container setup
+├── .env.example       # Environment variables template
+└── README.md        # This file
 ```
 
-**Run container directly**:
+---
+
+## Quick Start
+
+### Prerequisites
+- **Node.js 18+** - [Download](https://nodejs.org/)
+- **Python 3.11+** - [Download](https://python.org/)
+- **Groq API Key** (required) - [Get free key](https://console.groq.com/keys)
+
+### 1. Clone the Repository
+
 ```bash
-docker run -p 8501:8501 --env-file .env resume-critiquer
+git clone https://github.com/yourusername/agragrati.git
+cd agragrati
+```
+
+### 2. Backend Setup
+
+```bash
+# Navigate to backend
+cd backend
+
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create .env file
+cp ../.env.example .env
+# Edit .env and add your GROQ_API_KEY
+
+# Start backend server
+uvicorn main:app --reload --port 8000
+```
+
+Backend will be available at: http://localhost:8000
+API docs at: http://localhost:8000/docs
+
+### 3. Frontend Setup
+
+```bash
+# Open new terminal, navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+
+# Create .env.local file
+cp .env.example .env.local
+# Default settings work for local development
+
+# Start development server
+npm run dev
+```
+
+Frontend will be available at: http://localhost:5173
+
+### 4. Quick Start (Windows)
+
+Double-click `start.bat` or run:
+```powershell
+.\start.ps1
 ```
 
 ---
 
-## 🐍 Method B: Local Python Setup
+## API Keys
 
-### What You Need:
-- Python 3.8 or higher ([Download here](https://www.python.org/downloads/))
-- Your Groq API key
+### Required
 
-### Step-by-Step Setup:
+| API | Purpose | Get Key |
+|-----|---------|---------|
+| **Groq** | Powers all AI features | [console.groq.com/keys](https://console.groq.com/keys) |
 
-1. **Download/Clone this project** to your computer
+### Optional (Enhanced Features)
 
-2. **Open Terminal/Command Prompt** in the project folder
-
-3. **Create a virtual environment** (Recommended):
-   ```bash
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
-   
-   # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-4. **Install required packages**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Set up your API keys**:
-
-   **Required - Groq API Key**:
-   - Open the `.env` file
-   - Replace `your_groq_api_key_here` with your actual API key:
-   ```env
-   GROQ_API_KEY=gsk_your_actual_api_key_here
-   ```
-
-   **Optional - Job Search API Keys** (for real job data):
-
-   **JSearch API (via RapidAPI)** - 200 free requests/month:
-   - Visit: https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
-   - Subscribe to the free plan
-   - Copy your RapidAPI key to `.env`: `RAPIDAPI_KEY=your_key_here`
-
-   **Adzuna API** - 25 free requests/hour:
-   - Visit: https://developer.adzuna.com/
-   - Create a free account and get your App ID and App Key
-   - Add to `.env`:
-     ```env
-     ADZUNA_APP_ID=your_app_id_here
-     ADZUNA_APP_KEY=your_app_key_here
-     ```
-
-   **Note**: If job search API keys are not provided, the app will show sample job data with a warning.
-
-6. **Run the application**:
-   ```bash
-   streamlit run app.py
-   ```
-
-7. **Access the app**: Open your browser and go to http://localhost:8501
+| API | Purpose | Get Key | Free Tier |
+|-----|---------|---------|-----------|
+| **RapidAPI (JSearch)** | Primary job listings | [rapidapi.com/jsearch](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch) | 500 req/month |
+| **Adzuna** | Secondary job listings | [developer.adzuna.com](https://developer.adzuna.com/) | 5,000 req/month |
+| **Supabase** | Database for bookmarks | [supabase.com](https://supabase.com) | 500MB storage |
 
 ---
 
-## 🎯 How to Use the Application
+## Deployment
 
-### 📄 Resume Analysis
-1. **Upload Your Resume**:
-   - Go to the "Resume Analysis" tab
-   - Click "Browse files" button
-   - Select your resume (PDF or TXT format)
-   - Wait for upload to complete
+### Deploy to Vercel (Recommended)
 
-2. **Specify Job Role** (Optional but Recommended):
-   - Enter the job title you're targeting
-   - Example: "Software Engineer", "Marketing Manager", "Data Analyst"
-   - This provides more targeted feedback
+#### Frontend Deployment
 
-3. **Analyze Your Resume**:
-   - Click the "Analyze Resume" button
-   - Wait for AI analysis (usually 10-30 seconds)
-   - Review the comprehensive feedback
+1. **Push to GitHub**
+  ```bash
+  git init
+  git add .
+  git commit -m "Initial commit"
+  git remote add origin https://github.com/yourusername/agragrati.git
+  git push -u origin main
+  ```
 
-4. **Review Results**:
-   - **Overall Impression**: Quick summary of resume quality
-   - **Strengths**: What's working well in your resume
-   - **Areas for Improvement**: Specific issues to address
-   - **Recommendations**: Concrete suggestions for enhancement
-   - **Action Items**: Prioritized tasks (High/Medium/Low priority)
-   - **Final Score**: Numerical rating with justification
+2. **Import to Vercel**
+  - Go to [vercel.com/new](https://vercel.com/new)
+  - Import your GitHub repository
+  - Set **Root Directory** to `frontend`
+  - Framework will be auto-detected as Vite
 
-### 🔍 Job Search
-1. **Choose Search Method**:
-   - **Smart Search**: Upload and analyze your resume first, then use AI to find matching jobs
-   - **Manual Search**: Enter specific job titles, keywords, or company names
+3. **Configure Environment Variables**
+  In Vercel Project Settings → Environment Variables:
+  ```
+  VITE_API_URL=https://your-backend-url.vercel.app
+  VITE_SUPABASE_URL=your_supabase_url (optional)
+  VITE_SUPABASE_ANON_KEY=your_supabase_key (optional)
+  ```
 
-2. **Configure Search Parameters**:
-   - **Location**: Enter city, state, or country (e.g., "San Francisco, CA")
-   - **Job Type**: Filter by Full-time, Part-time, Contract, or Internship
-   - **Results Count**: Choose how many results to retrieve (10-50)
+4. **Deploy**
+  - Click Deploy
+  - Your frontend will be live at `https://your-project.vercel.app`
 
-3. **Search and Filter**:
-   - Click "Search Jobs" to find opportunities
-   - Use company and source filters to narrow results
-   - Review job details including salary, location, and application links
+#### Backend Deployment (Vercel Serverless)
 
-4. **Export Results**:
-   - Download search results as CSV for offline review
-   - Save job listings for future reference
+1. **Create new Vercel project for backend**
+  - Import same repository
+  - Set **Root Directory** to `backend`
 
-### 💡 Career Insights
-1. **Automatic Generation**: After analyzing your resume, visit the "Career Insights" tab
-2. **Review Recommendations**: Get personalized job search strategies
-3. **Skill Analysis**: See key skills identified from your resume
-4. **Career Guidance**: Follow strategic advice for improving your job search
+2. **Configure Environment Variables**
+  ```
+  GROQ_API_KEY=your_groq_key
+  RAPIDAPI_KEY=your_rapidapi_key (optional)
+  ADZUNA_APP_ID=your_adzuna_id (optional)
+  ADZUNA_APP_KEY=your_adzuna_key (optional)
+  FRONTEND_URL=https://your-frontend.vercel.app
+  ```
 
----
+3. **Deploy**
+  - Backend will be live at `https://your-api.vercel.app`
+  - Update frontend's `VITE_API_URL` with this URL
 
-## 🔧 Troubleshooting
+#### Alternative: Deploy Backend to Render
 
-### Common Issues:
+1. Go to [render.com](https://render.com)
+2. Create new Web Service
+3. Connect your GitHub repository
+4. Configure:
+  - **Root Directory**: `backend`
+  - **Build Command**: `pip install -r requirements.txt`
+  - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables
+6. Deploy
 
-**"API key not found" Error**:
-- Ensure your `.env` file has the correct API key
-- Check that there are no extra spaces or quotes around the key
-- Restart the application after updating the API key
+### Deploy with Docker
 
-**"File has no content" Error**:
-- Try a different PDF file
-- Ensure your PDF contains selectable text (not just images)
-- Try converting to TXT format if PDF doesn't work
+```bash
+# Build and start both services
+docker-compose up --build
 
-**Job Search Issues**:
-- If no jobs are found, try different keywords or broader location
-- Some job sites may temporarily block requests - try again later
-- Ensure you have a stable internet connection for job scraping
+# Run in background
+docker-compose up -d
 
-**Docker Issues**:
-- Ensure Docker Desktop is running
-- Try `docker-compose down` then `docker-compose up --build`
-- Check if port 8501 is already in use
+# View logs
+docker-compose logs -f
 
-**Slow Analysis/Job Search**:
-- Resume analysis: Wait up to 60 seconds for complex resumes
-- Job search: May take 30-60 seconds depending on number of results
-- Check your internet connection
+# Stop services
+docker-compose down
+```
 
----
-
-## ⚙️ Technical Details
-
-- **Framework**: Streamlit for web interface
-- **AI Model**: Groq Llama-3.3-70b-versatile for resume analysis and skill extraction
-- **Job Search APIs**:
-  - JSearch API (via RapidAPI) - 200 free requests/month
-  - Adzuna API - 25 free requests/hour
-  - Fallback to sample data if APIs not configured
-- **File Processing**: PyPDF2 for PDF extraction
-- **Data Processing**: Pandas for job data manipulation and filtering
-- **HTTP Requests**: Requests library for API calls
-- **Environment**: Python 3.8+ with virtual environment support
-- **Deployment**: Docker containerized for easy deployment
-- **Job Platforms**: LinkedIn, Indeed, ZipRecruiter, Google Jobs, and more (via APIs)
-
-## 🤖 Supported AI Models
-
-The application uses Groq's powerful language models:
-- **Primary**: `llama-3.3-70b-versatile` (best quality)
-- **Alternative**: `llama3-70b-8192`, `llama-3.1-8b-instant`
+Access:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
 
 ---
 
-## � Support
+## Database Setup (Supabase)
 
-If you encounter issues:
-1. Check the troubleshooting section above
-2. Ensure all prerequisites are met
-3. Verify your API key is valid and active
-4. Try restarting the application
+Optional but recommended for persisting bookmarks and applications.
+
+1. **Create Supabase Project**
+  - Go to [supabase.com](https://supabase.com)
+  - Create new project
+
+2. **Run Database Schema**
+  - Go to SQL Editor in Supabase dashboard
+  - Paste contents of `supabase_setup.sql`
+  - Click Run
+
+3. **Get API Credentials**
+  - Go to Project Settings → API
+  - Copy **Project URL** and **anon public** key
+
+4. **Configure Frontend**
+  Add to `frontend/.env.local`:
+  ```env
+  VITE_SUPABASE_URL=https://yourproject.supabase.co
+  VITE_SUPABASE_ANON_KEY=your_anon_key
+  ```
 
 ---
+
+## Keyboard Shortcuts
+
+Press `?` in the app to see all shortcuts.
+
+| Shortcut | Action |
+|----------|--------|
+| `?` | Show shortcuts help |
+| `Alt + H` | Go to Home |
+| `Alt + R` | Go to Resume Analysis |
+| `Alt + J` | Go to Job Search |
+| `Alt + M` | Go to Job Match |
+| `Alt + C` | Go to Career Insights |
+| `Alt + L` | Go to Cover Letter |
+| `Alt + I` | Go to Interview Prep |
+| `Alt + B` | Go to Bookmarks |
+| `Alt + A` | Go to Applications |
+| `Ctrl + /` | Focus search |
+| `Escape` | Close modal |
+
+---
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/upload-resume` | POST | Upload PDF/TXT resume |
+| `/analyze-resume` | POST | AI resume analysis |
+| `/search-jobs` | POST | Manual job search |
+| `/search-jobs-by-resume` | POST | AI-powered job search |
+| `/career-insights/paths` | POST | Career path analysis |
+| `/career-insights/skill-gaps` | POST | Skill gap analysis |
+| `/career-insights/salary` | POST | Salary insights |
+| `/career-insights/interview-prep` | POST | Interview preparation |
+| `/career-insights/learning` | POST | Learning recommendations |
+| `/career-insights/industry` | POST | Industry trends |
+| `/job-match` | POST | Resume-job matching |
+| `/generate-cover-letter` | POST | AI cover letter |
+| `/interview-questions` | POST | Generate questions |
+| `/evaluate-answer` | POST | Evaluate interview response |
+| `/enhance-resume-section` | POST | AI-enhance resume section |
+
+Full API documentation: `http://localhost:8000/docs`
+
+---
+
+## PWA Support
+
+Agragrati can be installed as a Progressive Web App:
+
+- **Chrome/Edge Desktop**: Click install icon in address bar
+- **Mobile**: "Add to Home Screen" from browser menu
+
+Features:
+- Works offline (cached pages)
+- App shortcuts for quick access
+- Native app-like experience
+- Automatic updates
+
+---
+
+## Theming
+
+Three theme options available via the sun/moon icon:
+
+- **Dark Mode** (default) - Easy on the eyes
+- **Light Mode** - For bright environments 
+- **System Mode** - Follows OS preference
+
+---
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+ <strong>Agragrati</strong> - AI-Powered Career Platform
+ <br/>
+ Made with ❤️ for job seekers everywhere
+ <br/><br/>
+ Powered by <a href="https://groq.com">Groq AI</a> • <a href="https://react.dev">React</a> • <a href="https://fastapi.tiangolo.com">FastAPI</a>
+</p>
