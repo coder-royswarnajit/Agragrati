@@ -1,12 +1,10 @@
 import re
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 import groq
 import os
 from typing import List, Dict, Optional
 import streamlit as st
-import urllib.parse
 import time
 import random
 import json
@@ -23,6 +21,9 @@ class JobSearcher:
         
     def extract_skills_from_resume(self, resume_text: str) -> List[str]:
         """Extract relevant skills and keywords from resume text using AI."""
+        if not resume_text or not resume_text.strip():
+            return []
+            
         prompt = f"""
         Analyze the following resume and extract the most relevant skills, technologies, and keywords that would be useful for job searching. 
         Focus on:
@@ -35,7 +36,7 @@ class JobSearcher:
         Maximum 15 most relevant terms.
         
         Resume content:
-        {resume_text}
+        {resume_text[:3000]}  # Limit content to avoid token limits
         """
         
         try:
@@ -53,16 +54,14 @@ class JobSearcher:
             if skills_text:
                 skills_text = skills_text.strip()
                 # Split by comma and clean up
-                skills = [skill.strip() for skill in skills_text.split(',') if skill.strip()]
+                skills = [skill.strip().strip('"').strip("'") for skill in skills_text.split(',') if skill.strip()]
+                # Filter out empty or too long skills
+                skills = [skill for skill in skills if skill and len(skill) < 50]
                 return skills[:15]  # Limit to 15 skills
             return []
             
         except Exception as e:
-            # Use print for non-Streamlit contexts
-            try:
-                st.error(f"Error extracting skills: {str(e)}")
-            except:
-                print(f"Error extracting skills: {str(e)}")
+            self._log_error(f"Error extracting skills: {str(e)}")
             return []
     
     def search_jobs_by_resume(self, resume_text: str, location: str = "United States",
@@ -72,10 +71,7 @@ class JobSearcher:
         skills = self.extract_skills_from_resume(resume_text)
         
         if not skills:
-            try:
-                st.warning("Could not extract skills from resume. Please try manual search.")
-            except:
-                print("Could not extract skills from resume. Please try manual search.")
+            self._log_warning("Could not extract skills from resume. Please try manual search.")
             return pd.DataFrame()
         
         # Create search term from top skills
@@ -86,49 +82,47 @@ class JobSearcher:
     def search_jobs(self, search_term: str, location: str = "United States",
                    results_wanted: int = 20, job_type: Optional[str] = None) -> pd.DataFrame:
         """Search for jobs using real APIs (JSearch and Adzuna)."""
+        if not search_term or not search_term.strip():
+            self._log_error("Search term cannot be empty")
+            return pd.DataFrame()
+            
         try:
-            with st.spinner("Searching for real job opportunities..."):
-                all_jobs = []
+            all_jobs = []
 
-                # Try JSearch API first (via RapidAPI)
-                if self.rapidapi_key:
-                    jsearch_jobs = self._search_jsearch_api(search_term, location, min(results_wanted, 10), job_type)
-                    all_jobs.extend(jsearch_jobs)
+            # Try JSearch API first (via RapidAPI)
+            if self.rapidapi_key and self.rapidapi_key != "your_rapidapi_key_here":
+                jsearch_jobs = self._search_jsearch_api(search_term, location, min(results_wanted, 10), job_type)
+                all_jobs.extend(jsearch_jobs)
 
-                # Try Adzuna API as backup/additional source
-                if self.adzuna_app_id and self.adzuna_app_key and len(all_jobs) < results_wanted:
-                    remaining_results = results_wanted - len(all_jobs)
-                    adzuna_jobs = self._search_adzuna_api(search_term, location, min(remaining_results, 10), job_type)
-                    all_jobs.extend(adzuna_jobs)
+            # Try Adzuna API as backup/additional source
+            if (self.adzuna_app_id and self.adzuna_app_id != "your_adzuna_app_id_here" and 
+                self.adzuna_app_key and self.adzuna_app_key != "your_adzuna_app_key_here" and 
+                len(all_jobs) < results_wanted):
+                remaining_results = results_wanted - len(all_jobs)
+                adzuna_jobs = self._search_adzuna_api(search_term, location, min(remaining_results, 10), job_type)
+                all_jobs.extend(adzuna_jobs)
 
-                # If no API keys available, fall back to sample data with warning
-                if not all_jobs:
-                    if not self.rapidapi_key and not (self.adzuna_app_id and self.adzuna_app_key):
-                        try:
-                            st.warning("⚠️ No API keys configured. Showing sample data. Please add RAPIDAPI_KEY or ADZUNA_APP_ID/ADZUNA_APP_KEY to .env file for real job data.")
-                        except:
-                            print("⚠️ No API keys configured. Showing sample data.")
-                    sample_jobs = self._generate_sample_jobs(search_term, location, results_wanted, job_type)
-                    all_jobs.extend(sample_jobs)
+            # If no API keys available or no results, fall back to sample data
+            if not all_jobs:
+                if (not self.rapidapi_key or self.rapidapi_key == "your_rapidapi_key_here") and \
+                   (not self.adzuna_app_id or self.adzuna_app_id == "your_adzuna_app_id_here" or 
+                    not self.adzuna_app_key or self.adzuna_app_key == "your_adzuna_app_key_here"):
+                    self._log_warning("⚠️ No API keys configured. Showing sample data. Please add RAPIDAPI_KEY or ADZUNA_APP_ID/ADZUNA_APP_KEY to .env file for real job data.")
+                sample_jobs = self._generate_sample_jobs(search_term, location, results_wanted, job_type)
+                all_jobs.extend(sample_jobs)
 
-                if not all_jobs:
-                    try:
-                        st.warning("No jobs found for the given criteria.")
-                    except:
-                        print("No jobs found for the given criteria.")
-                    return pd.DataFrame()
+            if not all_jobs:
+                self._log_warning("No jobs found for the given criteria.")
+                return pd.DataFrame()
 
-                # Convert to DataFrame and clean
-                jobs_df = pd.DataFrame(all_jobs)
-                jobs_df = self._clean_job_data(jobs_df)
+            # Convert to DataFrame and clean
+            jobs_df = pd.DataFrame(all_jobs)
+            jobs_df = self._clean_job_data(jobs_df)
 
-                return jobs_df
+            return jobs_df
 
         except Exception as e:
-            try:
-                st.error(f"Error searching for jobs: {str(e)}")
-            except:
-                print(f"Error searching for jobs: {str(e)}")
+            self._log_error(f"Error searching for jobs: {str(e)}")
             return pd.DataFrame()
 
     def _search_jsearch_api(self, search_term: str, location: str, results_wanted: int, job_type: Optional[str]) -> List[Dict]:
@@ -181,17 +175,14 @@ class JobSearcher:
 
                 return jobs
             else:
-                try:
-                    st.warning(f"JSearch API returned status code: {response.status_code}")
-                except:
-                    print(f"JSearch API returned status code: {response.status_code}")
+                self._log_warning(f"JSearch API returned status code: {response.status_code}")
                 return []
 
+        except requests.RequestException as e:
+            self._log_warning(f"JSearch API request error: {str(e)}")
+            return []
         except Exception as e:
-            try:
-                st.warning(f"JSearch API error: {str(e)}")
-            except:
-                print(f"JSearch API error: {str(e)}")
+            self._log_warning(f"JSearch API error: {str(e)}")
             return []
 
     def _search_adzuna_api(self, search_term: str, location: str, results_wanted: int, job_type: Optional[str]) -> List[Dict]:
@@ -239,7 +230,7 @@ class JobSearcher:
                         job_data = {
                             "Job Title": job.get("title", "N/A"),
                             "Company": job.get("company", {}).get("display_name", "N/A"),
-                            "Location": f"{job.get('location', {}).get('display_name', 'N/A')}",
+                            "Location": job.get("location", {}).get("display_name", "N/A"),
                             "Job Type": job.get("contract_type", "N/A"),
                             "Salary": self._format_salary_adzuna(job),
                             "Date Posted": job.get("created", "N/A"),
@@ -250,17 +241,14 @@ class JobSearcher:
 
                 return jobs
             else:
-                try:
-                    st.warning(f"Adzuna API returned status code: {response.status_code}")
-                except:
-                    print(f"Adzuna API returned status code: {response.status_code}")
+                self._log_warning(f"Adzuna API returned status code: {response.status_code}")
                 return []
 
+        except requests.RequestException as e:
+            self._log_warning(f"Adzuna API request error: {str(e)}")
+            return []
         except Exception as e:
-            try:
-                st.warning(f"Adzuna API error: {str(e)}")
-            except:
-                print(f"Adzuna API error: {str(e)}")
+            self._log_warning(f"Adzuna API error: {str(e)}")
             return []
 
     def _format_salary_jsearch(self, job: Dict) -> str:
@@ -278,7 +266,7 @@ class JobSearcher:
                 return f"Up to ${int(max_salary):,} per {salary_period}"
             else:
                 return "Salary not specified"
-        except:
+        except (ValueError, TypeError):
             return "Salary not specified"
 
     def _format_salary_adzuna(self, job: Dict) -> str:
@@ -295,7 +283,7 @@ class JobSearcher:
                 return f"Up to ${int(max_salary):,} yearly"
             else:
                 return "Salary not specified"
-        except:
+        except (ValueError, TypeError):
             return "Salary not specified"
 
     def _generate_sample_jobs(self, search_term: str, location: str, results_wanted: int, job_type: Optional[str]) -> List[Dict]:
@@ -306,7 +294,8 @@ class JobSearcher:
             "Oracle", "IBM", "Intel", "NVIDIA", "Cisco", "VMware"
         ]
 
-        job_titles = [
+        # Generate job titles based on search term
+        base_titles = [
             f"Senior {search_term}",
             f"Junior {search_term}",
             f"{search_term} Specialist",
@@ -326,7 +315,7 @@ class JobSearcher:
 
         for i in range(min(results_wanted, 20)):  # Limit to 20 for demo
             company = random.choice(companies)
-            title = random.choice(job_titles)
+            title = random.choice(base_titles)
 
             # Filter by job type if specified
             if job_type and job_type != "Any":
@@ -345,8 +334,8 @@ class JobSearcher:
                 "Job Type": selected_job_type,
                 "Salary": salary_range,
                 "Date Posted": f"{random.randint(1, 7)} days ago",
-                "Apply Link": f"https://example.com/jobs/{company.lower()}-{i}",
-                "Source": random.choice(sources)
+                "Apply Link": f"https://example.com/jobs/{company.lower().replace(' ', '-')}-{i}",
+                "Source": f"{random.choice(sources)} (Sample)"
             }
 
             sample_jobs.append(job)
@@ -355,88 +344,38 @@ class JobSearcher:
     
     def _clean_job_data(self, jobs_df: pd.DataFrame) -> pd.DataFrame:
         """Clean and format job data for display."""
+        if jobs_df.empty:
+            return jobs_df
+            
         try:
-            # Select and rename columns for better display
-            display_columns = {
-                'title': 'Job Title',
-                'company': 'Company',
-                'location': 'Location',
-                'job_type': 'Job Type',
-                'salary': 'Salary',
-                'date_posted': 'Date Posted',
-                'job_url': 'Apply Link',
-                'site': 'Source'
-            }
-            
-            # Create salary column from min/max amounts or use existing salary
-            if 'Salary' not in jobs_df.columns:
-                if 'min_amount' in jobs_df.columns and 'max_amount' in jobs_df.columns:
-                    jobs_df['salary'] = jobs_df.apply(self._format_salary, axis=1)
-                else:
-                    jobs_df['salary'] = 'Not specified'
-            
-            # Handle location column
-            if 'city' in jobs_df.columns and 'state' in jobs_df.columns:
-                jobs_df['location'] = jobs_df.apply(
-                    lambda row: f"{row.get('city', '')}, {row.get('state', '')}".strip(', '), 
-                    axis=1
-                )
-            
-            # Select available columns
-            available_columns = {}
-            for old_col, new_col in display_columns.items():
-                if old_col in jobs_df.columns:
-                    available_columns[old_col] = new_col
-            
-            # Rename columns
-            jobs_df = jobs_df.rename(columns=available_columns)
-            
-            # Select only the renamed columns that exist
-            final_columns = [col for col in display_columns.values() if col in jobs_df.columns]
-            jobs_df = jobs_df[final_columns]
-            
-            # Remove duplicates based on job title and company
+            # Remove duplicates based on job title and company if both columns exist
             if 'Job Title' in jobs_df.columns and 'Company' in jobs_df.columns:
                 jobs_df = jobs_df.drop_duplicates(subset=['Job Title', 'Company'])
             
-            # Sort by date if available
+            # Sort by date if available (handle different date formats)
             if 'Date Posted' in jobs_df.columns:
-                jobs_df = jobs_df.sort_values('Date Posted', ascending=False)
+                # For now, just sort alphabetically since date formats may vary
+                jobs_df = jobs_df.sort_values('Date Posted', ascending=False, na_last=True)
+            
+            # Clean up any NaN values
+            jobs_df = jobs_df.fillna('N/A')
+            
+            # Ensure consistent column order
+            desired_columns = ['Job Title', 'Company', 'Location', 'Job Type', 'Salary', 'Date Posted', 'Apply Link', 'Source']
+            available_columns = [col for col in desired_columns if col in jobs_df.columns]
+            jobs_df = jobs_df[available_columns]
             
             return jobs_df.reset_index(drop=True)
             
         except Exception as e:
-            st.error(f"Error cleaning job data: {str(e)}")
+            self._log_error(f"Error cleaning job data: {str(e)}")
             return jobs_df
-    
-    def _format_salary(self, row) -> str:
-        """Format salary information from min/max amounts."""
-        try:
-            min_amount = row.get('min_amount')
-            max_amount = row.get('max_amount')
-            interval = row.get('interval', 'yearly')
-            
-            if pd.isna(min_amount) and pd.isna(max_amount):
-                return 'Not specified'
-            
-            # Format amounts
-            if not pd.isna(min_amount) and not pd.isna(max_amount):
-                if min_amount == max_amount:
-                    return f"${int(min_amount):,} {interval}"
-                else:
-                    return f"${int(min_amount):,} - ${int(max_amount):,} {interval}"
-            elif not pd.isna(min_amount):
-                return f"${int(min_amount):,}+ {interval}"
-            elif not pd.isna(max_amount):
-                return f"Up to ${int(max_amount):,} {interval}"
-            
-            return 'Not specified'
-            
-        except Exception:
-            return 'Not specified'
     
     def get_job_recommendations(self, resume_text: str, target_role: Optional[str] = None) -> List[str]:
         """Get job search recommendations based on resume analysis."""
+        if not resume_text or not resume_text.strip():
+            return []
+            
         prompt = f"""
         Based on the following resume, provide 5 specific job search recommendations.
         Focus on:
@@ -448,9 +387,10 @@ class JobSearcher:
         {f"The user is targeting: {target_role}" if target_role else ""}
         
         Resume content:
-        {resume_text}
+        {resume_text[:2000]}  # Limit content to avoid token limits
         
         Provide exactly 5 bullet points with actionable recommendations.
+        Format each as: "• [recommendation]"
         """
         
         try:
@@ -467,14 +407,43 @@ class JobSearcher:
             recommendations_text = response.choices[0].message.content
             if recommendations_text:
                 recommendations_text = recommendations_text.strip()
-                # Split into individual recommendations
-                recommendations = [rec.strip() for rec in recommendations_text.split('\n') if rec.strip() and ('•' in rec or '-' in rec or rec.startswith(('1.', '2.', '3.', '4.', '5.')))]
-                return recommendations[:5]
+                # Split into individual recommendations and clean them
+                lines = recommendations_text.split('\n')
+                recommendations = []
+                
+                for line in lines:
+                    line = line.strip()
+                    if line and (line.startswith('•') or line.startswith('-') or 
+                               any(line.startswith(f'{i}.') for i in range(1, 6))):
+                        # Clean up the bullet point
+                        clean_rec = line.lstrip('•-123456789. ').strip()
+                        if clean_rec:
+                            recommendations.append(clean_rec)
+                
+                return recommendations[:5]  # Limit to 5 recommendations
             return []
             
         except Exception as e:
-            try:
-                st.error(f"Error generating recommendations: {str(e)}")
-            except:
-                print(f"Error generating recommendations: {str(e)}")
+            self._log_error(f"Error generating recommendations: {str(e)}")
             return []
+
+    def _log_error(self, message: str):
+        """Log error message safely."""
+        try:
+            st.error(message)
+        except:
+            print(f"ERROR: {message}")
+
+    def _log_warning(self, message: str):
+        """Log warning message safely."""
+        try:
+            st.warning(message)
+        except:
+            print(f"WARNING: {message}")
+
+    def _log_info(self, message: str):
+        """Log info message safely."""
+        try:
+            st.info(message)
+        except:
+            print(f"INFO: {message}")
