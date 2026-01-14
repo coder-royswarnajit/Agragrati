@@ -1,4 +1,9 @@
 import streamlit as st
+
+st.set_page_config(page_title='Agragrati - AI Resume & Job Search', layout='wide')
+
+
+
 import groq
 import PyPDF2
 import io
@@ -7,10 +12,10 @@ import pandas as pd
 from dotenv import load_dotenv
 from job_search import JobSearcher
 from interview_training import render_interview_training
+from cover_letter import render_cover_letter_generator
 
 load_dotenv()
 
-st.set_page_config(page_title='Agragrati - AI Resume & Job Search', layout='wide')
 
 st.title('🎯 Agragrati - AI Resume & Job Search')
 st.markdown('Upload your resume to receive feedback and find real job opportunities!')
@@ -38,12 +43,11 @@ if 'extracted_skills' not in st.session_state:
     st.session_state.extracted_skills = []
 
 # Create tabs for different functionalities
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3 ,tab4= st.tabs([
     "📄 Resume Analysis", 
     "🔍 Job Search", 
-    "💡 Career Insights", 
-    "📊 Project Review",
-    "🎤 Interview Training"
+    "🎤 Interview Training",
+    "Cover Letter Generator"
 ])
 
 def extract_text_pdf(file):
@@ -196,27 +200,30 @@ Please structure your response with the following sections:
 with tab1:
     st.header("Resume Analysis")
     uploaded_file = st.file_uploader("Upload Your Resume (PDF or TXT)", type=["pdf", "txt"])
-    job_role = st.text_input("Enter the job role you are targeting (optional)")
-    
-    # Optional Project Review Section
-    st.markdown("---")
-    st.subheader("🎯 Optional: Project vs Job Offer Review")
-    st.markdown("*Compare your projects against a specific job posting for targeted insights*")
-    
-    enable_project_review = st.checkbox("Enable Project Review Against Job Offer")
-    job_offer_text = None
-    
-    if enable_project_review:
-        st.info("📋 Paste the job description/offer below to get project-specific feedback")
+
+    st.markdown("### 🎯 Target Role / Job Offer (optional)")
+    st.markdown(
+        "*You can either enter a target job title, paste a job description/offer, or use both for the most precise guidance.*"
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        job_role = st.text_input(
+            "Target Job Title (optional)",
+            placeholder="e.g., Software Engineer, Data Scientist"
+        )
+
+    with col2:
         job_offer_text = st.text_area(
-            "Job Description/Offer",
+            "Job Description / Offer (optional)",
             placeholder="Paste the complete job description here...",
-            height=200,
+            height=180,
             help="Include job requirements, responsibilities, skills needed, etc."
         )
-    
-    analyze_button = st.button("Analyze Resume", type="primary")
-    
+
+    analyze_button = st.button("Analyze Resume & (Optional) Project Fit", type="primary")
+
     # Resume Analysis Logic
     if analyze_button and uploaded_file:
         with st.spinner("Analyzing your resume..."):
@@ -252,17 +259,16 @@ with tab1:
                 st.markdown('### 📋 Resume Analysis Results:')
                 st.markdown(resume_analysis)
 
-                # Project Review Analysis (if enabled)
-                if enable_project_review and job_offer_text and job_offer_text.strip():
+                # Project vs Job Offer Analysis (optional)
+                if job_offer_text and job_offer_text.strip():
                     st.markdown("---")
-                    st.markdown('### 🎯 Project vs Job Offer Analysis:')
                     
                     with st.spinner("Analyzing your projects against the job offer..."):
                         project_analysis = analyze_projects_against_job_offer(file_content, job_offer_text, client)
                         st.session_state.project_analysis = project_analysis
                         st.markdown(project_analysis)
 
-                st.success("✅ Analysis complete! Check the Career Insights and Project Review tabs for additional information.")
+                st.success("✅ Analysis complete! Check the Career Insights tab for additional information.")
 
 def display_job_result(jobs_df, search_type):
     """Display job search results with filters and download options."""
@@ -314,21 +320,7 @@ with tab2:
 
     # Show API status
     api_status = []
-    if hasattr(job_searcher, 'rapidapi_key') and job_searcher.rapidapi_key and job_searcher.rapidapi_key != "your_rapidapi_key_here":
-        api_status.append("✅ JSearch API")
-    else:
-        api_status.append("❌ JSearch API (not configured)")
-
-    if (hasattr(job_searcher, 'adzuna_app_id') and job_searcher.adzuna_app_id and job_searcher.adzuna_app_id != "your_adzuna_app_id_here" and
-        hasattr(job_searcher, 'adzuna_app_key') and job_searcher.adzuna_app_key and job_searcher.adzuna_app_key != "your_adzuna_app_key_here"):
-        api_status.append("✅ Adzuna API")
-    else:
-        api_status.append("❌ Adzuna API (not configured)")
-
-    st.info(f"**API Status**: {' | '.join(api_status)}")
-
-    if not any("✅" in status for status in api_status):
-        st.warning("⚠️ No job search APIs configured. Will show sample data. See README for API setup instructions.")
+    
 
     # Job search options
     search_option = st.radio(
@@ -399,60 +391,9 @@ with tab2:
                         st.warning("No jobs found. Try adjusting your search criteria.")
 
 
-# TAB 3: Career Insights
+# TAB 3: Interview Training
 with tab3:
-    st.header("Career Insights")
-    
-    if st.session_state.career_insights:
-        st.success("✅ Resume analyzed! Here are your personalized career insights:")
-        
-        insights = st.session_state.career_insights
-        
-        # Job Search Recommendations
-        if insights.get('recommendations'):
-            st.markdown("### 🎯 Job Search Recommendations:")
-            for i, rec in enumerate(insights['recommendations'], 1):
-                st.markdown(f"{i}. {rec}")
-        
-        # Skills Section
-        if insights.get('skills'):
-            st.markdown("### 🔧 Key Skills Identified:")
-            skills_html = " ".join([
-                f'<span style="background-color: #e1f5fe; padding: 4px 8px; margin: 2px; border-radius: 12px; font-size: 12px; display: inline-block;">{skill}</span>' 
-                for skill in insights['skills']
-            ])
-            st.markdown(skills_html, unsafe_allow_html=True)
-            
-        # Download insights
-        if insights.get('analysis'):
-            st.download_button(
-                label="📥 Download Career Analysis",
-                data=insights['analysis'],
-                file_name="career_analysis.txt",
-                mime="text/plain"
-            )
-    else:
-        st.info("Upload your resume and analyze it to get personalized career recommendations!")
-
-# TAB 4: Project Review
-with tab4:
-    st.header("Project Review")
-    
-    if st.session_state.project_analysis:
-        st.success("✅ Project analysis completed! Review the detailed insights below:")
-        st.markdown("### 🎯 Project vs Job Offer Analysis")
-        st.markdown(st.session_state.project_analysis)
-        
-        # Download option for project analysis
-        st.download_button(
-            label="📥 Download Project Analysis",
-            data=st.session_state.project_analysis,
-            file_name="project_analysis.txt",
-            mime="text/plain"
-        )
-    else:
-        st.info("Upload your resume and enable 'Project Review Against Job Offer' in the Resume Analysis tab to see project-specific insights here!")
-
-# TAB 5: Interview Training
-with tab5:
     render_interview_training(GROQ_API_KEY, st.session_state.resume_content)
+
+with tab4:
+    render_cover_letter_generator(GROQ_API_KEY, st.session_state.resume_content)

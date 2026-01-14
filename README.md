@@ -202,20 +202,22 @@ docker run -p 8501:8501 --env-file .env resume-critiquer
 
 ### 📄 Resume Analysis
 1. **Upload Your Resume**:
-   - Go to the "Resume Analysis" tab
-   - Click "Browse files" button
-   - Select your resume (PDF or TXT format)
+   - Go to the **"📄 Resume Analysis"** tab
+   - Click the file uploader and select your resume (PDF or TXT)
    - Wait for upload to complete
 
-2. **Specify Job Role** (Optional but Recommended):
-   - Enter the job title you're targeting
-   - Example: "Software Engineer", "Marketing Manager", "Data Analyst"
-   - This provides more targeted feedback
+2. **Set Your Target (Optional but Recommended)**:
+   - In the **Target Role / Job Offer** area you can:
+     - Enter a **Target Job Title** (e.g., "Software Engineer")
+     - Paste a **Job Description / Offer** (full posting text)
+     - Or use **both** for the most precise guidance
 
-3. **Analyze Your Resume**:
-   - Click the "Analyze Resume" button
-   - Wait for AI analysis (usually 10-30 seconds)
-   - Review the comprehensive feedback
+3. **Run Analysis**:
+   - Click **"Analyze Resume & (Optional) Project Fit"**
+   - The app will:
+     - Run a full resume review
+     - Extract skills and generate job recommendations
+     - Optionally analyze your projects vs. the pasted job offer (if provided)
 
 4. **Review Results**:
    - **Overall Impression**: Quick summary of resume quality
@@ -249,6 +251,39 @@ docker run -p 8501:8501 --env-file .env resume-critiquer
 2. **Review Recommendations**: Get personalized job search strategies
 3. **Skill Analysis**: See key skills identified from your resume
 4. **Career Guidance**: Follow strategic advice for improving your job search
+
+### 🎤 Interview Training (Voice-Only, Hands-Free)
+1. Go to the **"🎤 Interview Training"** tab.
+2. In **Interview Setup**:
+   - Choose an **Interview Type** (Technical, Behavioral, General, Custom).
+   - Optionally set a **Target Position**.
+   - Optionally enable **Use my resume for context** (if you already analyzed your resume).
+3. Click **"🚀 Start Interview"**:
+   - The AI interviewer will **ask the first question and speak it aloud**.
+4. After each question:
+   - Simply *start speaking* your answer.
+   - The app records, transcribes, sends it to the interviewer, speaks the reply, and then **immediately listens again** for the next answer.
+5. Use **"🛑 End Interview"** to stop:
+   - The app generates and shows **interview feedback / summary**.
+6. **Sidebar chat history**:
+   - Left sidebar shows **Previous Interviews**.
+   - Click any interview to open it.
+   - Use **"🗑️ Clear Current Chat"** to reset the current interview while keeping the slot.
+   - Use the small **🗑️ button** next to a chat to delete it entirely.
+   - Use **"➕ New Chat"** to start a fresh interview thread.
+
+### ✉️ Cover Letter Generator
+1. Go to the **"Cover Letter Generator"** tab.
+2. Make sure you have already run **Resume Analysis** so the app has your `resume_content`.
+3. Fill the fields:
+   - **Job Title (optional)**
+   - **Company Name (optional)**
+   - **Your Name / Email / Phone (optional)** – otherwise they’re extracted from the resume when possible.
+   - Paste the **Job Description / Offer** in the text area.
+4. Click **"Generate Cover Letter"**:
+   - The app creates a **tailored, structured cover letter** that aligns your resume with the job offer.
+5. Review and optionally tweak the text, then:
+   - Use the **Download Cover Letter** button to save it as a `.txt` file.
 
 ---
 
